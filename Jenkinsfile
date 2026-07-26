@@ -1,35 +1,35 @@
 pipeline {
-    agent any 
+    agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credenials')
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
         SONAR_TOKEN = credentials('sonarcloud-token')
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-
-
     }
 
     stages {
-        stage ('Checkout SCM'){
+
+        stage('Checkout SCM') {
             steps {
                 checkout scm
             }
         }
 
-        stage ('Install Backend Dependencies'){
+        stage('Install Backend Dependencies') {
             steps {
                 sh 'npm install --omit=dev'
             }
         }
 
-        stage ('Install Frontend Dependencies'){
+        stage('Install Frontend Dependencies') {
             steps {
-                sh 'npm install'
+                dir('frontend') {
+                    sh 'npm install'
+                }
             }
         }
-    }
 
-    stage('SonarCloud Analysis') {
+        stage('SonarCloud Analysis') {
             steps {
                 withSonarQubeEnv('SonarCloud') {
                     sh '''
@@ -40,11 +40,11 @@ pipeline {
                         -Dsonar.host.url=https://sonarcloud.io \
                         -Dsonar.token=$SONAR_TOKEN
                     '''
+                }
             }
         }
-    }
 
-    stage('Build Backend Image') {
+        stage('Build Backend Image') {
             steps {
                 sh 'docker build -t $DOCKERHUB_CREDENTIALS_USR/proshop-backend:$IMAGE_TAG .'
             }
@@ -57,6 +57,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
@@ -69,4 +70,5 @@ pipeline {
         failure {
             echo 'Build failed — check logs above.'
         }
- }
+    }
+}
