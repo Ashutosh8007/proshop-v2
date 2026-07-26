@@ -58,7 +58,7 @@ pipeline {
             }
         }
 
-    }
+    
 
     stage('Trivy Scan - Backend') {
             steps {
@@ -79,6 +79,7 @@ pipeline {
                 archiveArtifacts artifacts: 'trivy-frontend-report.txt', allowEmptyArchive: true
             }
         }
+    }
 
     post {
         always {
