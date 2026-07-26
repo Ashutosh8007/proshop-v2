@@ -60,6 +60,26 @@ pipeline {
 
     }
 
+    stage('Trivy Scan - Backend') {
+            steps {
+                sh '''
+                    trivy image --severity CRITICAL --exit-code 1 --format table $DOCKERHUB_CREDENTIALS_USR/proshop-backend:$IMAGE_TAG || true
+                    trivy image --format table $DOCKERHUB_CREDENTIALS_USR/proshop-backend:$IMAGE_TAG > trivy-backend-report.txt
+                '''
+                archiveArtifacts artifacts: 'trivy-backend-report.txt', allowEmptyArchive: true
+            }
+        }
+
+        stage('Trivy Scan - Frontend') {
+            steps {
+                sh '''
+                    trivy image --severity CRITICAL --exit-code 1 --format table $DOCKERHUB_CREDENTIALS_USR/proshop-frontend:$IMAGE_TAG || true
+                    trivy image --format table $DOCKERHUB_CREDENTIALS_USR/proshop-frontend:$IMAGE_TAG > trivy-frontend-report.txt
+                '''
+                archiveArtifacts artifacts: 'trivy-frontend-report.txt', allowEmptyArchive: true
+            }
+        }
+
     post {
         always {
             echo 'Pipeline finished.'
